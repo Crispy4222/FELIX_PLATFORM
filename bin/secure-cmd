@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+PINFILE="$HOME/.felix_pin"
+if [ ! -f "$PINFILE" ]; then
+  echo "PIN file missing; cannot run secure-cmd" >&2
+  exit 2
+fi
+read -rsp "Enter PIN: " PIN_INPUT; echo
+PIN_HASH=$(echo -n "$PIN_INPUT" | sha256sum | awk '{print $1}')
+if [ "$PIN_HASH" != "$(cat "$PINFILE")" ]; then
+  echo "Denied." >&2
+  exit 1
+fi
+# If approved, run the remainder of args as a command
+if [ $# -eq 0 ]; then
+  /bin/bash --login
+else
+  exec "$@"
+fi
