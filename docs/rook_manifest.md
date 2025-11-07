@@ -1,5 +1,6 @@
 # Rook: Sentinel Function Manifest and Operator Ethos
 
+This document outlines the design philosophy and functional capabilities of Rook, a system monitoring and recovery operator. It is intended for developers and operators to understand Rook's purpose, behavior, and available commands.
 ## Rook's Roots and Operator Ethos
 
 - **Built from real fights, not brochure promises.** Rook comes from scraped knuckles, panic saves, and long nights pulling files back from oblivion. Operators trust him because he earned it in production, where every lesson is paid for and logged.
