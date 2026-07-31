@@ -28,3 +28,5 @@ policykit-1
 xdg-utils
 desktop-file-utils
 dbus-x11
+libgomp1
+libstdc++6
