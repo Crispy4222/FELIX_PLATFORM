@@ -1,0 +1,19 @@
+[Unit]
+Description=FELIX Hallway visual shell
+After=local-fs.target network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/bin/busybox httpd -f -p 127.0.0.1:8080 -h /opt/felix-hallway
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/felix-hallway
+
+[Install]
+WantedBy=multi-user.target
