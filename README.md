@@ -2,23 +2,24 @@
 
 FELIX Platform is a reproducible bootable live operating system built around one principle: **the AI is not a chat program beside the PC; FELIX is the machine's executive control plane.**
 
-The Linux kernel still owns hardware, drivers, scheduling, and memory protection. FELIX boots above that deterministic foundation before the desktop, reads the machine's state, accepts operator intent, references local event memory, selects a bounded capability route, and exposes the result through the visual Hallway.
+The Linux kernel owns hardware, drivers, scheduling, and memory protection. FELIX boots immediately above that deterministic foundation, before the desktop. It reads the machine's state, accepts operator intent, references local memory, reasons through a resident offline language model, validates the proposed route against policy, and exposes the result through the visual Hallway.
 
-## Image profile
+## What is actually inside the image
 
 - Debian 13 `trixie`, amd64
 - Hybrid BIOS and UEFI boot
 - XFCE desktop with LightDM live-session autologin
-- Native static `felixd` cortex started by systemd before the display manager
+- Native static `felixd` control plane started before the display manager
+- Resident `llama.cpp` inference service on `127.0.0.1:8081`
+- Bundled Qwen2.5 1.5B Instruct Q4_K_M GGUF model pinned to an immutable source revision
+- Deterministic native cortex as an immediate fallback when model inference is unavailable
 - Machine-state, intent, memory, door-registry, and event APIs on `127.0.0.1:8080`
 - Visual Hallway as FELIX's live thought surface
-- Deterministic offline intent cortex
-- Optional local or operator-selected OpenAI-compatible model provider
 - Append-only event memory at `/var/lib/felix/events.jsonl`
-- Door policy registry at `/etc/felix/doors.json`
+- Hard door policy at `/etc/felix/doors.json`
 - Files, Terminal, Browser, Network, Settings, and Logs capability doors
+- Model license, source revision, runtime revision, and generated SHA-256 record inside the image
 - No cloud key or provider token embedded in the image
-- SHA-256 checksums and El Torito boot-catalog validation
 
 ## Runtime architecture
 
@@ -27,12 +28,16 @@ Firmware
    ↓
 Linux kernel + systemd
    ↓
+felix-model.service
+   └─ resident offline reasoning model
+   ↓
 felix-core.service
    ├─ reads machine state
    ├─ receives operator intent
-   ├─ references auditable memory
-   ├─ asks a local/selected model when configured
-   └─ validates every route against policy
+   ├─ references auditable event memory
+   ├─ asks the resident model for a proposed plan
+   ├─ falls back to deterministic native routing if needed
+   └─ validates every route against hard policy
    ↓
 XFCE operator session
    ↓
@@ -60,26 +65,36 @@ felix-door open settings
 felix-door open logs
 ```
 
-## Attach a reasoning model
+## Resident model and overrides
 
-FELIX works offline with its native bounded intent cortex. For broader reasoning, copy the example provider configuration and point it at an OpenAI-compatible endpoint:
+The default build bundles:
 
-```bash
-sudo cp /etc/felix/provider.env.example /etc/felix/provider.env
-sudo chmod 600 /etc/felix/provider.env
-sudo editor /etc/felix/provider.env
-sudo systemctl restart felix-core.service
+```text
+Model:   Qwen2.5-1.5B-Instruct-GGUF Q4_K_M
+Runtime: llama.cpp b10199
+API:     http://127.0.0.1:8081/v1/chat/completions
 ```
 
-A local endpoint keeps inference on the PC. A remote endpoint is optional. Model output remains a proposal: the native policy layer rejects unknown doors and holds destructive actions for explicit confirmation.
+The model is the reasoning organ, not the authority chain. Its response is parsed as a proposed plan. The native core rejects unknown doors, never executes model-generated shell text, and withholds destructive actions for a separately defined confirmation path.
+
+An operator may override the resident provider through `/etc/felix/provider.env`. Credentials are never built into the ISO.
+
+To build a smaller image without bundled weights:
+
+```bash
+FELIX_BUNDLE_MODEL=0 bash scripts/build-iso.sh
+```
+
+The deterministic native cortex remains available in that profile.
 
 ## Build locally
 
-Use a Debian or Ubuntu x86_64 host with Go 1.23+ and `sudo` access.
+Use a Debian or Ubuntu x86_64 host with Go 1.23+, `sudo`, and enough storage for the Debian live filesystem plus the resident model.
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y \
+  build-essential cmake curl git pkg-config \
   live-build debootstrap squashfs-tools xorriso isolinux syslinux-common \
   grub-pc-bin grub-efi-amd64-bin mtools dosfstools rsync
 
@@ -99,9 +114,11 @@ The `Build FELIX Operating Presence ISO` workflow:
 
 1. tests and vets the native cortex;
 2. compiles a static amd64 `felixd` binary;
-3. creates the Debian Live hybrid image;
-4. validates the boot catalog and live filesystem;
-5. publishes the `felix-presence-os-amd64` artifact.
+3. builds the pinned local llama.cpp inference runtime;
+4. downloads the model from its pinned immutable revision;
+5. records model source, license, and SHA-256 information;
+6. creates the Debian Live hybrid image;
+7. validates the boot catalog and publishes `felix-presence-os-amd64`.
 
 ## Test in QEMU
 
@@ -122,6 +139,6 @@ sudo dd if=out/felix-presence-os-amd64.iso of=/dev/sdX bs=4M status=progress ofl
 
 ## Design boundary
 
-FELIX is the thought behind the system in the architectural sense: first reasoning service, shared state interpreter, memory anchor, and route owner. It is not claimed to be conscious, and it does not replace the kernel's deterministic safety mechanisms.
+FELIX is the thought behind the system in the architectural sense: resident reasoning organ, first executive service, shared state interpreter, memory anchor, and route owner. It is not claimed to be conscious, and it does not replace the kernel's deterministic safety mechanisms.
 
-See `ARCHITECTURE.md` inside the live system at `/usr/share/doc/felix-platform/ARCHITECTURE.md`.
+See `/usr/share/doc/felix-platform/ARCHITECTURE.md` inside the live system.
