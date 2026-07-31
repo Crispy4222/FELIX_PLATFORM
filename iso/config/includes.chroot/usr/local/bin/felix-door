@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+
+REGISTRY=/etc/felix/doors.json
+
+usage() {
+  echo "Usage: felix-door list | open <door>"
+}
+
+case "${1:-}" in
+  list)
+    jq -r '.doors | to_entries[] | "\(.key)\t\(.value.label)\t\(.value.purpose)"' "$REGISTRY"
+    ;;
+  open)
+    case "${2:-}" in
+      hallway) nohup /usr/local/bin/felix-hallway-launch >/tmp/felix-hallway.log 2>&1 & ;;
+      files) nohup thunar >/tmp/felix-files.log 2>&1 & ;;
+      terminal) nohup xfce4-terminal >/tmp/felix-terminal.log 2>&1 & ;;
+      browser) nohup firefox-esr >/tmp/felix-browser.log 2>&1 & ;;
+      network) nohup nm-connection-editor >/tmp/felix-network.log 2>&1 & ;;
+      settings) nohup xfce4-settings-manager >/tmp/felix-settings.log 2>&1 & ;;
+      logs) nohup xfce4-terminal --command='journalctl -f' >/tmp/felix-logs.log 2>&1 & ;;
+      *) echo "Unknown door: ${2:-<missing>}" >&2; usage; exit 2 ;;
+    esac
+    ;;
+  *) usage; exit 2 ;;
+esac
