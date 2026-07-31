@@ -1,0 +1,42 @@
+[Unit]
+Description=FELIX resident local reasoning model
+Documentation=file:/usr/share/doc/felix-platform/MODEL_SOURCE.txt
+After=local-fs.target
+Before=felix-core.service
+ConditionPathExists=/opt/felix-models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+StartLimitIntervalSec=120
+StartLimitBurst=3
+
+[Service]
+Type=simple
+DynamicUser=true
+ExecStart=/usr/local/libexec/felix-llama-server \
+  -m /opt/felix-models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
+  --host 127.0.0.1 \
+  --port 8081 \
+  -c 4096 \
+  -np 1
+Restart=on-failure
+RestartSec=5
+Nice=5
+OOMScoreAdjust=250
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadOnlyPaths=/opt/felix-models
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+{
+  "schema": "felix.doors/v1",
+  "doors": {
+    "hallway": {"label":"Hallway","command":"felix-hallway-launch","purpose":"Visual shell and shared route map"},
+    "files": {"label":"Files","command":"thunar","purpose":"Browse projects and removable media"},
+    "terminal": {"label":"Terminal","command":"xfce4-terminal","purpose":"Direct operator console"},
+    "browser": {"label":"Browser","command":"firefox-esr","purpose":"Open web and local applications"},
+    "network": {"label":"Network","command":"nm-connection-editor","purpose":"Manage network connections"},
+    "settings": {"label":"Settings","command":"xfce4-settings-manager","purpose":"Configure desktop and devices"},
+    "logs": {"label":"Logs","command":"xfce4-terminal --command=journalctl -f","purpose":"Observe live system events"}
+  }
+}

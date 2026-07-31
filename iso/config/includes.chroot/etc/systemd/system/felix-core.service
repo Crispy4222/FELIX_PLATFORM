@@ -1,0 +1,40 @@
+[Unit]
+Description=FELIX native operating-system control plane
+Documentation=file:/usr/share/doc/felix-platform/ARCHITECTURE.md
+After=local-fs.target network-pre.target felix-model.service
+Before=display-manager.service
+Wants=network-pre.target felix-model.service
+StartLimitIntervalSec=90
+StartLimitBurst=5
+
+[Service]
+Type=simple
+DynamicUser=true
+EnvironmentFile=-/etc/felix/provider.env
+ExecStart=/usr/local/sbin/felixd -config /etc/felix/core.json
+Restart=on-failure
+RestartSec=2
+StateDirectory=felix
+RuntimeDirectory=felix
+UMask=0027
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/felix /opt/felix-hallway
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+
+[Install]
+WantedBy=multi-user.target

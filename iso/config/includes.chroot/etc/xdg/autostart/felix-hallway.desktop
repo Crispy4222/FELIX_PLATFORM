@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=FELIX Hallway
+Comment=Open the visual operating shell
+Exec=/usr/local/bin/felix-hallway-launch
+Terminal=false
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=XFCE;

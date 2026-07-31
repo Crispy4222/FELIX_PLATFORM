@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=FELIX Door Router
+Comment=Open an allowlisted operating-system capability door
+Exec=/usr/local/bin/felix-door url %u
+Terminal=false
+NoDisplay=true
+MimeType=x-scheme-handler/felix;
+Categories=System;

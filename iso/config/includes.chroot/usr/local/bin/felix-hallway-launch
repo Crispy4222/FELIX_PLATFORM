@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+URL="http://127.0.0.1:8080"
+xdg-mime default felix-door.desktop x-scheme-handler/felix >/dev/null 2>&1 || true
+
+for attempt in $(seq 1 30); do
+  if curl --silent --fail --max-time 1 "$URL/api/health" >/dev/null; then
+    exec firefox-esr --kiosk --private-window "$URL"
+  fi
+  sleep 1
+done
+
+exec xfce4-terminal --title="FELIX recovery" --command="sh -lc 'echo FELIX core did not enter the Hallway.; echo Run: sudo systemctl status felix-core.service; echo Then: journalctl -u felix-core.service -b; exec sh'"

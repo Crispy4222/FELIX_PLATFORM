@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FELIX // Operating Presence</title>
+  <style>
+    :root{color-scheme:dark;--bg:#05070d;--panel:rgba(14,19,31,.82);--line:rgba(89,247,215,.25);--cyan:#59f7d7;--orange:#ff9a3d;--text:#eef7ff;--muted:#8ca1b9;--danger:#ff6b79}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--text);background:radial-gradient(circle at 50% 8%,rgba(57,94,157,.28),transparent 34%),linear-gradient(180deg,#090d18 0%,var(--bg) 68%)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(89,247,215,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(89,247,215,.035) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 88%)}
+    .shell{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding:22px;gap:16px} header,footer,.panel{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(18px);box-shadow:0 18px 60px rgba(0,0,0,.34)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:15px 19px;border-radius:16px}.brand{display:flex;align-items:center;gap:14px}.sigil{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;color:#07110f;font-weight:900;background:linear-gradient(135deg,var(--cyan),#b7fff2);box-shadow:0 0 30px rgba(89,247,215,.28)}
+    h1{margin:0;font-size:18px;letter-spacing:.18em}.subtitle{color:var(--muted);font-size:12px;margin-top:5px}.status{display:flex;gap:14px;align-items:center;font:12px ui-monospace,monospace;color:var(--muted)}.pulse{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px var(--cyan)}.pulse.offline{background:var(--danger);box-shadow:0 0 16px var(--danger)}
+    main{min-height:0;display:grid;grid-template-columns:minmax(420px,1fr) 390px;gap:16px}.hallway{position:relative;min-height:620px;overflow:hidden;border-radius:22px;border:1px solid rgba(89,247,215,.18);background:linear-gradient(90deg,rgba(255,255,255,.02),transparent 35%,transparent 65%,rgba(255,255,255,.02)),linear-gradient(180deg,rgba(17,25,42,.94),rgba(5,8,14,.96));perspective:900px}
+    .ceiling,.floor{position:absolute;left:12%;right:12%;height:44%;border-left:1px solid rgba(89,247,215,.16);border-right:1px solid rgba(89,247,215,.16)}.ceiling{top:0;transform-origin:top;transform:rotateX(-55deg);background:linear-gradient(to bottom,rgba(89,247,215,.08),transparent)}.floor{bottom:0;transform-origin:bottom;transform:rotateX(62deg);background:repeating-linear-gradient(90deg,transparent 0 74px,rgba(89,247,215,.08) 75px),repeating-linear-gradient(0deg,transparent 0 54px,rgba(89,247,215,.07) 55px)}.vanish{position:absolute;top:47%;left:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:var(--orange);box-shadow:0 0 45px var(--orange)}
+    .doors{position:absolute;inset:34px;display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));align-content:center;gap:22px 90px}.door{position:relative;min-height:108px;padding:17px;border-radius:14px 14px 5px 5px;border:1px solid rgba(89,247,215,.34);background:linear-gradient(145deg,rgba(24,34,52,.94),rgba(8,13,23,.94));color:var(--text);cursor:pointer;text-align:left;transition:.18s ease;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02),0 14px 40px rgba(0,0,0,.26)}.door:nth-child(odd){transform:skewY(1.3deg)}.door:nth-child(even){transform:skewY(-1.3deg)}.door:hover,.door.active{border-color:var(--cyan);box-shadow:0 0 30px rgba(89,247,215,.18),inset 0 0 30px rgba(89,247,215,.05);transform:translateY(-3px)}
+    .door-id{font:11px ui-monospace,monospace;color:var(--cyan);letter-spacing:.16em}.door-label{display:block;font-size:20px;font-weight:760;margin:9px 0 5px}.door-purpose{color:var(--muted);font-size:12px;line-height:1.4}.knob{position:absolute;right:15px;bottom:17px;width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 14px rgba(255,154,61,.8)}
+    .cortex{display:grid;grid-template-rows:auto auto 1fr auto;gap:13px;min-height:0}.panel{border-radius:17px;padding:17px}.eyebrow{color:var(--orange);font:11px ui-monospace,monospace;letter-spacing:.18em}.machine{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.metric{padding:10px;border:1px solid rgba(89,247,215,.14);border-radius:10px;background:rgba(0,0,0,.19)}.metric span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}.metric strong{display:block;margin-top:5px;font:12px ui-monospace,monospace;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    form{display:flex;gap:8px;margin-top:12px}textarea{width:100%;min-height:78px;resize:vertical;border:1px solid rgba(89,247,215,.24);border-radius:11px;background:rgba(0,0,0,.3);color:var(--text);padding:11px;font:13px/1.45 ui-monospace,monospace;outline:none}textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(89,247,215,.08)}button.action,.launch{border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer;text-decoration:none;text-align:center}.action{background:var(--cyan);color:#07110f}.action:disabled{opacity:.45;cursor:wait}.launch{display:none;margin-top:12px;background:var(--orange);color:#160c02}.launch.visible{display:block}
+    .thought{min-height:170px}.thought h2{font-size:20px;margin:10px 0 7px}.thought p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.evidence{margin:12px 0 0;padding:0;list-style:none}.evidence li{font:11px/1.5 ui-monospace,monospace;color:#b9cadc;margin-top:5px}.evidence li:before{content:"↳ ";color:var(--cyan)}.route{margin-top:12px;padding-top:12px;border-top:1px solid rgba(89,247,215,.12);display:flex;justify-content:space-between;gap:10px;color:var(--muted);font:11px ui-monospace,monospace}.confidence{color:var(--cyan)}
+    .memory-row{display:flex;gap:8px;margin-top:10px}.memory-row input{flex:1;border:1px solid rgba(89,247,215,.2);border-radius:9px;background:rgba(0,0,0,.25);color:var(--text);padding:9px}.tiny{color:var(--muted);font-size:11px;line-height:1.45;margin-top:8px}footer{border-radius:14px;padding:11px 15px;display:flex;justify-content:space-between;color:var(--muted);font:11px ui-monospace,monospace}kbd{color:var(--text);border:1px solid rgba(255,255,255,.18);padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.04)}
+    @media(max-width:980px){body{overflow:auto}.shell{height:auto}main{grid-template-columns:1fr}.hallway{min-height:650px}.cortex{grid-template-columns:1fr 1fr;grid-template-rows:auto}.thought{grid-column:span 2}.doors{gap:20px 42px}}@media(max-width:650px){.shell{padding:10px}.status .hide-small{display:none}.doors{position:relative;inset:auto;padding:20px;grid-template-columns:1fr;gap:12px}.hallway{min-height:auto}.ceiling,.floor,.vanish{display:none}.cortex{display:block}.panel{margin-top:10px}.thought{min-height:0}footer{display:block;line-height:1.6}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand"><div class="sigil">122</div><div><h1>FELIX // OPERATING PRESENCE</h1><div class="subtitle">THE MACHINE IS THE BODY · THE CORTEX IS THE ROUTE</div></div></div>
+    <div class="status"><span class="pulse" id="pulse"></span><span id="coreState">CONNECTING</span><span class="hide-small" id="clock"></span></div>
+  </header>
+  <main>
+    <section class="hallway" aria-label="FELIX capability hallway"><div class="ceiling"></div><div class="floor"></div><div class="vanish"></div><div class="doors" id="doors"></div></section>
+    <aside class="cortex">
+      <section class="panel">
+        <div class="eyebrow">BODY STATE</div>
+        <div class="machine">
+          <div class="metric"><span>Host</span><strong id="host">—</strong></div>
+          <div class="metric"><span>Uptime</span><strong id="uptime">—</strong></div>
+          <div class="metric"><span>Load</span><strong id="load">—</strong></div>
+          <div class="metric"><span>Memory free</span><strong id="memory">—</strong></div>
+          <div class="metric"><span>Disk free</span><strong id="disk">—</strong></div>
+          <div class="metric"><span>Network</span><strong id="network">—</strong></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="eyebrow">OPERATOR INTENT</div>
+        <form id="intentForm"><textarea id="intent" placeholder="Tell the system what you are trying to do—not which program to open."></textarea></form>
+        <button class="action" id="think" type="submit" form="intentForm">LET FELIX ROUTE IT</button>
+      </section>
+      <section class="panel thought">
+        <div class="eyebrow">CURRENT THOUGHT</div>
+        <h2 id="thoughtTitle">Hallway awake</h2>
+        <p id="thoughtText">I am reading the machine, the registered doors, and your next intent. Nothing launches merely because a model said so.</p>
+        <ul class="evidence" id="evidence"><li>Local policy boundary active</li><li>Append-only event memory active</li></ul>
+        <a class="launch" id="launch" href="#">OPEN CHOSEN DOOR</a>
+        <div class="route"><span id="provider">provider: native-cortex</span><span class="confidence" id="confidence">confidence: ready</span></div>
+      </section>
+      <section class="panel">
+        <div class="eyebrow">ANCHOR MEMORY</div>
+        <div class="memory-row"><input id="memoryInput" placeholder="Record a decision or stable fact"/><button class="action" id="remember">ETCH</button></div>
+        <div class="tiny" id="memoryState">Memory is local to this system image and stored as auditable events.</div>
+      </section>
+    </aside>
+  </main>
+  <footer><span>Core: felix-core.service · State: /var/lib/felix/events.jsonl · Policy: /etc/felix/doors.json</span><span><kbd>Alt</kbd> + <kbd>F4</kbd> exits kiosk · CLI: <code>felixctl think "intent"</code></span></footer>
+</div>
+<script>
+  const $=id=>document.getElementById(id); let doorMap={};
+  const formatBytes=n=>{if(!n)return '—';const u=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return `${n.toFixed(i>1?1:0)} ${u[i]}`};
+  const formatUptime=s=>{if(!s)return '—';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?`${d}d ${h}h`:`${h}h ${m}m`};
+  async function json(url,options){const r=await fetch(url,options);if(!r.ok)throw new Error((await r.text())||r.statusText);return r.json()}
+  async function loadStatus(){try{const s=await json('/api/status');$('host').textContent=s.hostname;$('uptime').textContent=formatUptime(s.uptime_seconds);$('load').textContent=s.load_average||'—';$('memory').textContent=formatBytes((s.memory_available_kb||0)*1024);$('disk').textContent=formatBytes(s.disk_free_bytes);$('network').textContent=(s.interfaces||[]).join(', ')||'offline';$('coreState').textContent='CORTEX ONLINE';$('pulse').classList.remove('offline')}catch(e){$('coreState').textContent='CORE OFFLINE';$('pulse').classList.add('offline')}}
+  function selectDoor(id){document.querySelectorAll('.door').forEach(x=>x.classList.toggle('active',x.dataset.id===id));const d=doorMap[id];if(!d)return;$('thoughtTitle').textContent=d.label;$('thoughtText').textContent=d.purpose;$('launch').href=`felix://open/${id}`;$('launch').classList.add('visible');$('provider').textContent='route: operator-selected';$('confidence').textContent='policy: allowlisted'}
+  async function loadDoors(){const data=await json('/api/doors');doorMap=data.doors||{};const box=$('doors');box.textContent='';Object.entries(doorMap).forEach(([id,d],i)=>{const b=document.createElement('button');b.className='door'+(id==='hallway'?' active':'');b.dataset.id=id;b.innerHTML=`<span class="door-id">DOOR ${String(i+1).padStart(2,'0')}</span><span class="door-label">${d.label}</span><span class="door-purpose">${d.purpose}</span><span class="knob"></span>`;b.onclick=()=>selectDoor(id);box.appendChild(b)})}
+  $('intentForm').addEventListener('submit',async e=>{e.preventDefault();const text=$('intent').value.trim();if(!text)return;const btn=$('think');btn.disabled=true;btn.textContent='THINKING FROM SYSTEM STATE…';$('launch').classList.remove('visible');try{const data=await json('/api/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});const p=data.plan;$('thoughtTitle').textContent=p.door&&doorMap[p.door]?doorMap[p.door].label:'Hold at Hallway';$('thoughtText').textContent=p.thought||'No thought returned.';$('provider').textContent=`provider: ${p.provider}`;$('confidence').textContent=`confidence: ${Math.round((p.confidence||0)*100)}%`;$('evidence').textContent='';(p.evidence||[]).forEach(v=>{const li=document.createElement('li');li.textContent=v;$('evidence').appendChild(li)});document.querySelectorAll('.door').forEach(x=>x.classList.toggle('active',x.dataset.id===p.door));if(p.launch_url&&!p.needs_confirmation){$('launch').href=p.launch_url;$('launch').classList.add('visible')}else if(p.needs_confirmation){const li=document.createElement('li');li.textContent='Explicit confirmation required; no door was opened.';$('evidence').appendChild(li)}}catch(err){$('thoughtTitle').textContent='Cortex error';$('thoughtText').textContent=err.message}finally{btn.disabled=false;btn.textContent='LET FELIX ROUTE IT';loadStatus()}});
+  $('remember').addEventListener('click',async()=>{const text=$('memoryInput').value.trim();if(!text)return;try{await json('/api/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});$('memoryInput').value='';$('memoryState').textContent='Etched into the local event memory.'}catch(e){$('memoryState').textContent=e.message}});
+  const tick=()=>{$('clock').textContent=new Date().toLocaleString()};tick();setInterval(tick,1000);loadDoors().catch(e=>{$('thoughtText').textContent=e.message});loadStatus();setInterval(loadStatus,30000);
+</script>
+</body>
+</html>
