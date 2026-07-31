@@ -9,11 +9,15 @@ INCLUDES_DIR="$ISO_DIR/config/includes.chroot"
 SYSTEMD_WANTS="$INCLUDES_DIR/etc/systemd/system/multi-user.target.wants"
 SBIN_DIR="$INCLUDES_DIR/usr/local/sbin"
 BIN_DIR="$INCLUDES_DIR/usr/local/bin"
+LIBEXEC_DIR="$INCLUDES_DIR/usr/local/libexec"
 
 command -v go >/dev/null 2>&1 || { echo "error: Go 1.23+ is required to build FELIX core" >&2; exit 1; }
 
 rm -rf "$OUT_DIR"
-mkdir -p "$OUT_DIR" "$SYSTEMD_WANTS" "$SBIN_DIR" "$BIN_DIR"
+mkdir -p "$OUT_DIR" "$SYSTEMD_WANTS" "$SBIN_DIR" "$BIN_DIR" "$LIBEXEC_DIR"
+
+chmod 0755 "$ROOT_DIR/scripts/fetch-local-cortex.sh"
+"$ROOT_DIR/scripts/fetch-local-cortex.sh"
 
 (
   cd "$CORE_DIR"
@@ -29,8 +33,12 @@ chmod 0755 \
   "$SBIN_DIR/felixd" \
   "$BIN_DIR/felix-hallway-launch" \
   "$BIN_DIR/felix-door"
+if [[ -f "$LIBEXEC_DIR/felix-llama-server" ]]; then
+  chmod 0755 "$LIBEXEC_DIR/felix-llama-server"
+fi
 ln -sfn ../sbin/felixd "$BIN_DIR/felixctl"
 ln -sfn ../felix-core.service "$SYSTEMD_WANTS/felix-core.service"
+ln -sfn ../felix-model.service "$SYSTEMD_WANTS/felix-model.service"
 rm -f "$SYSTEMD_WANTS/felix-hallway.service"
 
 cd "$ISO_DIR"
