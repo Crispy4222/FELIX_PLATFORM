@@ -5,9 +5,9 @@
   "state_dir": "/var/lib/felix",
   "doors_file": "/etc/felix/doors.json",
   "provider": {
-    "endpoint": "",
-    "model": "",
-    "token_file": "/etc/felix/provider.token",
-    "timeout_seconds": 20
+    "endpoint": "http://127.0.0.1:8081/v1/chat/completions",
+    "model": "qwen2.5-1.5b-instruct-q4_k_m",
+    "token_file": "",
+    "timeout_seconds": 45
   }
 }
