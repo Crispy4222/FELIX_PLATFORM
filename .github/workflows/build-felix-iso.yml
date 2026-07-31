@@ -1,10 +1,11 @@
-name: Build FELIX Hallway ISO
+name: Build FELIX Operating Presence ISO
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
       - '.github/workflows/build-felix-iso.yml'
+      - 'core/**'
       - 'iso/**'
       - 'scripts/build-iso.sh'
   push:
@@ -13,6 +14,7 @@ on:
       - 'feat/**'
     paths:
       - '.github/workflows/build-felix-iso.yml'
+      - 'core/**'
       - 'iso/**'
       - 'scripts/build-iso.sh'
 
@@ -33,6 +35,18 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+          cache-dependency-path: core/go.mod
+
+      - name: Verify native cortex
+        working-directory: core
+        run: |
+          go test ./...
+          go vet ./...
+
       - name: Install ISO build tools
         run: |
           sudo apt-get update
@@ -50,24 +64,25 @@ jobs:
             rsync
 
       - name: Build bootable image
-        run: sudo bash scripts/build-iso.sh
+        run: bash scripts/build-iso.sh
 
-      - name: Validate image and boot catalog
+      - name: Validate image, boot catalog, and cortex payload
         run: |
-          ISO=out/felix-hallway-os-amd64.iso
+          ISO=out/felix-presence-os-amd64.iso
           test -s "$ISO"
           file "$ISO" | tee out/file-report.txt
           xorriso -indev "$ISO" -report_el_torito plain | tee out/el-torito-report.txt
           xorriso -indev "$ISO" -find /live -maxdepth 2 -type f -print | tee out/live-files-report.txt
           grep -q '/live/' out/live-files-report.txt
+          xorriso -indev "$ISO" -find / -name 'filesystem.squashfs' -print | grep -q filesystem.squashfs
           sha256sum --check out/SHA256SUMS
 
       - name: Upload bootable ISO
         uses: actions/upload-artifact@v4
         with:
-          name: felix-hallway-os-amd64
+          name: felix-presence-os-amd64
           path: |
-            out/felix-hallway-os-amd64.iso
+            out/felix-presence-os-amd64.iso
             out/SHA256SUMS
             out/file-report.txt
             out/el-torito-report.txt
