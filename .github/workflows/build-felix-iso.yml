@@ -1,0 +1,77 @@
+name: Build FELIX Hallway ISO
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/build-felix-iso.yml'
+      - 'iso/**'
+      - 'scripts/build-iso.sh'
+  push:
+    branches:
+      - main
+      - 'feat/**'
+    paths:
+      - '.github/workflows/build-felix-iso.yml'
+      - 'iso/**'
+      - 'scripts/build-iso.sh'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: felix-iso-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-iso:
+    name: Build amd64 hybrid image
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install ISO build tools
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            live-build \
+            debootstrap \
+            squashfs-tools \
+            xorriso \
+            isolinux \
+            syslinux-common \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            mtools \
+            dosfstools \
+            rsync
+
+      - name: Build bootable image
+        run: sudo bash scripts/build-iso.sh
+
+      - name: Validate image and boot catalog
+        run: |
+          ISO=out/felix-hallway-os-amd64.iso
+          test -s "$ISO"
+          file "$ISO" | tee out/file-report.txt
+          xorriso -indev "$ISO" -report_el_torito plain | tee out/el-torito-report.txt
+          xorriso -indev "$ISO" -find /live -maxdepth 2 -type f -print | tee out/live-files-report.txt
+          grep -q '/live/' out/live-files-report.txt
+          sha256sum --check out/SHA256SUMS
+
+      - name: Upload bootable ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: felix-hallway-os-amd64
+          path: |
+            out/felix-hallway-os-amd64.iso
+            out/SHA256SUMS
+            out/file-report.txt
+            out/el-torito-report.txt
+            out/live-files-report.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
