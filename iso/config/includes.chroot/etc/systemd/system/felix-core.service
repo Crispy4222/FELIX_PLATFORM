@@ -1,9 +1,9 @@
 [Unit]
 Description=FELIX native operating-system control plane
 Documentation=file:/usr/share/doc/felix-platform/ARCHITECTURE.md
-After=local-fs.target network-pre.target
+After=local-fs.target network-pre.target felix-model.service
 Before=display-manager.service
-Wants=network-pre.target
+Wants=network-pre.target felix-model.service
 StartLimitIntervalSec=90
 StartLimitBurst=5
 
