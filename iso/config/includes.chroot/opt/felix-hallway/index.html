@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FELIX Hallway OS</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05070d;
+      --panel: rgba(14, 19, 31, .78);
+      --line: rgba(89, 247, 215, .26);
+      --cyan: #59f7d7;
+      --orange: #ff9a3d;
+      --text: #eef7ff;
+      --muted: #8ca1b9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% 14%, rgba(57, 94, 157, .22), transparent 34%),
+        linear-gradient(180deg, #090d18 0%, var(--bg) 62%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(89,247,215,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(89,247,215,.035) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.8), transparent 82%);
+    }
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 24px;
+      gap: 18px;
+    }
+    header, footer, .inspector {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.32);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-radius: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .sigil {
+      width: 44px; height: 44px; border-radius: 14px;
+      display: grid; place-items: center;
+      color: #07110f; font-weight: 900;
+      background: linear-gradient(135deg, var(--cyan), #b7fff2);
+      box-shadow: 0 0 30px rgba(89,247,215,.28);
+    }
+    h1 { margin: 0; font-size: 18px; letter-spacing: .18em; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .status { display: flex; gap: 18px; align-items: center; font: 12px ui-monospace, monospace; color: var(--muted); }
+    .pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 16px var(--cyan); }
+    main { min-height: 0; display: grid; grid-template-columns: 1fr 330px; gap: 18px; }
+    .hallway {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid rgba(89,247,215,.18);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.02), transparent 35%, transparent 65%, rgba(255,255,255,.02)),
+        linear-gradient(180deg, rgba(17,25,42,.94), rgba(5,8,14,.96));
+      perspective: 900px;
+    }
+    .ceiling, .floor {
+      position: absolute; left: 12%; right: 12%; height: 44%;
+      border-left: 1px solid rgba(89,247,215,.16);
+      border-right: 1px solid rgba(89,247,215,.16);
+    }
+    .ceiling { top: 0; transform-origin: top; transform: rotateX(-55deg); background: linear-gradient(to bottom, rgba(89,247,215,.08), transparent); }
+    .floor { bottom: 0; transform-origin: bottom; transform: rotateX(62deg); background: repeating-linear-gradient(90deg, transparent 0 74px, rgba(89,247,215,.08) 75px), repeating-linear-gradient(0deg, transparent 0 54px, rgba(89,247,215,.07) 55px); }
+    .vanish { position: absolute; top: 47%; left: 50%; width: 10px; height: 10px; transform: translate(-50%,-50%); border-radius: 50%; background: var(--orange); box-shadow: 0 0 45px var(--orange); }
+    .doors {
+      position: absolute; inset: 42px 38px;
+      display: grid; grid-template-columns: repeat(2, minmax(180px,1fr));
+      align-content: center; gap: 28px 120px;
+    }
+    .door {
+      position: relative;
+      min-height: 112px;
+      padding: 18px;
+      border-radius: 14px 14px 5px 5px;
+      border: 1px solid rgba(89,247,215,.34);
+      background: linear-gradient(145deg, rgba(24,34,52,.94), rgba(8,13,23,.94));
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02), 0 14px 40px rgba(0,0,0,.26);
+    }
+    .door:nth-child(odd) { transform: skewY(1.7deg); }
+    .door:nth-child(even) { transform: skewY(-1.7deg); }
+    .door:hover, .door.active { border-color: var(--cyan); box-shadow: 0 0 30px rgba(89,247,215,.18), inset 0 0 30px rgba(89,247,215,.05); transform: translateY(-3px); }
+    .door-id { font: 11px ui-monospace, monospace; color: var(--cyan); letter-spacing: .16em; }
+    .door-label { display: block; font-size: 20px; font-weight: 760; margin: 10px 0 6px; }
+    .door-purpose { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .knob { position: absolute; right: 15px; bottom: 17px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 14px rgba(255,154,61,.8); }
+    .inspector { border-radius: 18px; padding: 20px; min-height: 0; display: flex; flex-direction: column; }
+    .eyebrow { color: var(--orange); font: 11px ui-monospace, monospace; letter-spacing: .18em; }
+    .inspector h2 { font-size: 24px; margin: 12px 0 6px; }
+    .inspector p { color: var(--muted); line-height: 1.55; font-size: 13px; }
+    .command {
+      margin-top: 16px; padding: 12px; border-radius: 10px;
+      border: 1px solid rgba(89,247,215,.18);
+      background: rgba(0,0,0,.24);
+      font: 12px ui-monospace, monospace;
+      color: var(--cyan);
+      word-break: break-word;
+    }
+    .route { margin-top: auto; padding-top: 18px; }
+    .route-step { display: flex; align-items: center; gap: 10px; margin-top: 11px; color: var(--muted); font-size: 12px; }
+    .route-step::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px rgba(89,247,215,.5); }
+    footer { border-radius: 14px; padding: 12px 16px; display: flex; justify-content: space-between; color: var(--muted); font: 11px ui-monospace, monospace; }
+    kbd { color: var(--text); border: 1px solid rgba(255,255,255,.18); padding: 2px 6px; border-radius: 5px; background: rgba(255,255,255,.04); }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .inspector { display: none; }
+      .doors { gap: 20px 40px; inset: 26px; }
+      .status .hide-small { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="sigil">122</div>
+        <div>
+          <h1>FELIX // HALLWAY OS</h1>
+          <div class="subtitle">EVENT-DRIVEN VISUAL OPERATING SHELL</div>
+        </div>
+      </div>
+      <div class="status"><span class="pulse"></span><span>LOCAL RUNTIME ONLINE</span><span class="hide-small" id="clock"></span></div>
+    </header>
+
+    <main>
+      <section class="hallway" aria-label="Application hallway">
+        <div class="ceiling"></div><div class="floor"></div><div class="vanish"></div>
+        <div class="doors" id="doors"></div>
+      </section>
+
+      <aside class="inspector">
+        <div class="eyebrow">SELECTED DOOR</div>
+        <h2 id="selectedLabel">Hallway</h2>
+        <p id="selectedPurpose">Visual shell and shared route map.</p>
+        <div class="command" id="selectedCommand">felix-door open hallway</div>
+        <div class="route">
+          <div class="eyebrow">ACTION LIFECYCLE</div>
+          <div class="route-step">Intent recognized</div>
+          <div class="route-step">Permission boundary checked</div>
+          <div class="route-step">Door launched once</div>
+          <div class="route-step">Result returned to Hallway</div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <span>Operator: crispy · Host: felix-hallway · Registry: /etc/felix/doors.json</span>
+      <span><kbd>Alt</kbd> + <kbd>F4</kbd> exits kiosk · use <code>felix-door list</code> in Terminal</span>
+    </footer>
+  </div>
+
+  <script>
+    const doors = [
+      ['hallway','Hallway','Visual shell and shared route map.'],
+      ['files','Files','Browse projects, evidence, and removable media.'],
+      ['terminal','Terminal','Direct operator console and recovery surface.'],
+      ['browser','Browser','Open web and local applications.'],
+      ['network','Network','Manage wired, wireless, and VPN connections.'],
+      ['settings','Settings','Configure the desktop, display, and devices.'],
+      ['logs','Logs','Observe live system events and service output.']
+    ];
+    const container = document.getElementById('doors');
+    doors.forEach(([id,label,purpose], index) => {
+      const button = document.createElement('button');
+      button.className = 'door' + (index === 0 ? ' active' : '');
+      button.innerHTML = `<span class="door-id">DOOR ${String(index + 1).padStart(2,'0')}</span><span class="door-label">${label}</span><span class="door-purpose">${purpose}</span><span class="knob"></span>`;
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.door').forEach(d => d.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById('selectedLabel').textContent = label;
+        document.getElementById('selectedPurpose').textContent = purpose;
+        document.getElementById('selectedCommand').textContent = `felix-door open ${id}`;
+      });
+      container.appendChild(button);
+    });
+    const tick = () => document.getElementById('clock').textContent = new Date().toLocaleString();
+    tick(); setInterval(tick, 1000);
+  </script>
+</body>
+</html>
