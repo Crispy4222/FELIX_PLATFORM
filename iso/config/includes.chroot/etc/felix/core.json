@@ -1,0 +1,13 @@
+{
+  "identity": "FELIX // WAKE-122",
+  "listen": "127.0.0.1:8080",
+  "static_dir": "/opt/felix-hallway",
+  "state_dir": "/var/lib/felix",
+  "doors_file": "/etc/felix/doors.json",
+  "provider": {
+    "endpoint": "",
+    "model": "",
+    "token_file": "/etc/felix/provider.token",
+    "timeout_seconds": 20
+  }
+}
