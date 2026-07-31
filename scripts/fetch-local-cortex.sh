@@ -24,13 +24,17 @@ LICENSE_URL="https://huggingface.co/${MODEL_REPO}/resolve/${MODEL_REV}/LICENSE?d
 command -v git >/dev/null 2>&1 || { echo "error: git is required" >&2; exit 1; }
 command -v cmake >/dev/null 2>&1 || { echo "error: cmake is required" >&2; exit 1; }
 command -v curl >/dev/null 2>&1 || { echo "error: curl is required" >&2; exit 1; }
+command -v sha256sum >/dev/null 2>&1 || { echo "error: sha256sum is required" >&2; exit 1; }
 
 mkdir -p "$LIBEXEC_DIR" "$MODEL_DIR" "$DOC_DIR" "$CACHE_DIR"
 
 LLAMA_SRC="$CACHE_DIR/llama.cpp-$LLAMA_TAG"
-if [[ ! -x "$LIBEXEC_DIR/felix-llama-server" ]]; then
-  rm -rf "$LLAMA_SRC"
-  git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp.git "$LLAMA_SRC"
+LLAMA_BIN="$LLAMA_SRC/build/bin/llama-server"
+if [[ ! -x "$LLAMA_BIN" ]]; then
+  if [[ ! -d "$LLAMA_SRC/.git" ]]; then
+    rm -rf "$LLAMA_SRC"
+    git clone --depth 1 --branch "$LLAMA_TAG" https://github.com/ggml-org/llama.cpp.git "$LLAMA_SRC"
+  fi
   cmake -S "$LLAMA_SRC" -B "$LLAMA_SRC/build" \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF \
@@ -40,17 +44,27 @@ if [[ ! -x "$LIBEXEC_DIR/felix-llama-server" ]]; then
     -DLLAMA_BUILD_TESTS=OFF \
     -DLLAMA_BUILD_EXAMPLES=OFF
   cmake --build "$LLAMA_SRC/build" --config Release --target llama-server -j"$(nproc)"
-  install -m 0755 "$LLAMA_SRC/build/bin/llama-server" "$LIBEXEC_DIR/felix-llama-server"
 fi
+install -m 0755 "$LLAMA_BIN" "$LIBEXEC_DIR/felix-llama-server"
 
-if [[ ! -s "$MODEL_DIR/$MODEL_FILE" ]]; then
+CACHED_MODEL="$CACHE_DIR/$MODEL_FILE"
+if [[ ! -s "$CACHED_MODEL" ]]; then
   curl --fail --location --retry 5 --retry-all-errors --continue-at - \
-    --output "$MODEL_DIR/$MODEL_FILE.part" "$MODEL_URL"
-  mv "$MODEL_DIR/$MODEL_FILE.part" "$MODEL_DIR/$MODEL_FILE"
+    --output "$CACHED_MODEL.part" "$MODEL_URL"
+  mv "$CACHED_MODEL.part" "$CACHED_MODEL"
 fi
+if [[ "$(stat -c %s "$CACHED_MODEL")" -le 1000000000 ]]; then
+  echo "error: cached model is unexpectedly small" >&2
+  exit 1
+fi
+install -m 0644 "$CACHED_MODEL" "$MODEL_DIR/$MODEL_FILE"
 
-curl --fail --location --retry 5 --retry-all-errors \
-  --output "$DOC_DIR/QWEN2.5-LICENSE" "$LICENSE_URL"
+CACHED_LICENSE="$CACHE_DIR/QWEN2.5-LICENSE"
+if [[ ! -s "$CACHED_LICENSE" ]]; then
+  curl --fail --location --retry 5 --retry-all-errors \
+    --output "$CACHED_LICENSE" "$LICENSE_URL"
+fi
+install -m 0644 "$CACHED_LICENSE" "$DOC_DIR/QWEN2.5-LICENSE"
 
 (
   cd "$MODEL_DIR"
