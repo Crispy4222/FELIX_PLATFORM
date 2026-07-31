@@ -25,3 +25,6 @@ fonts-noto-color-emoji
 plymouth
 plymouth-themes
 policykit-1
+xdg-utils
+desktop-file-utils
+dbus-x11
