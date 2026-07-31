@@ -10,6 +10,7 @@ StartLimitBurst=5
 [Service]
 Type=simple
 DynamicUser=true
+EnvironmentFile=-/etc/felix/provider.env
 ExecStart=/usr/local/sbin/felixd -config /etc/felix/core.json
 Restart=on-failure
 RestartSec=2
