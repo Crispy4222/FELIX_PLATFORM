@@ -1,2 +1,24 @@
 logs/
 *.log
+
+# Reproducible build products
+out/
+.build-cache/
+iso/.build/
+iso/cache/
+iso/chroot/
+iso/binary/
+iso/config/common
+iso/config/bootstrap
+iso/config/chroot
+iso/config/binary
+iso/config/source
+
+# Generated FELIX cortex payload
+iso/config/includes.chroot/usr/local/sbin/felixd
+iso/config/includes.chroot/usr/local/bin/felixctl
+iso/config/includes.chroot/usr/local/libexec/felix-llama-server
+iso/config/includes.chroot/opt/felix-models/
+iso/config/includes.chroot/usr/share/doc/felix-platform/QWEN2.5-LICENSE
+iso/config/includes.chroot/usr/share/doc/felix-platform/MODEL_SHA256SUMS
+iso/config/includes.chroot/usr/share/doc/felix-platform/MODEL_SOURCE.txt
