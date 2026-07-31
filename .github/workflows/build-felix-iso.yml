@@ -8,6 +8,7 @@ on:
       - 'core/**'
       - 'iso/**'
       - 'scripts/build-iso.sh'
+      - 'scripts/fetch-local-cortex.sh'
   push:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
       - 'core/**'
       - 'iso/**'
       - 'scripts/build-iso.sh'
+      - 'scripts/fetch-local-cortex.sh'
 
 permissions:
   contents: read
@@ -29,7 +31,7 @@ jobs:
   build-iso:
     name: Build amd64 hybrid image
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
 
     steps:
       - name: Check out source
@@ -41,16 +43,27 @@ jobs:
           go-version: '1.23.x'
           cache-dependency-path: core/go.mod
 
-      - name: Verify native cortex
+      - name: Cache resident cortex build inputs
+        uses: actions/cache@v4
+        with:
+          path: .build-cache
+          key: felix-cortex-linux-amd64-llama-b10199-qwen2.5-1.5b-r91cad511
+
+      - name: Verify native control plane
         working-directory: core
         run: |
           go test ./...
           go vet ./...
 
-      - name: Install ISO build tools
+      - name: Install build and ISO tools
         run: |
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential \
+            cmake \
+            curl \
+            git \
+            pkg-config \
             live-build \
             debootstrap \
             squashfs-tools \
@@ -63,10 +76,22 @@ jobs:
             dosfstools \
             rsync
 
-      - name: Build bootable image
+      - name: Build bootable image with resident model
+        env:
+          FELIX_BUNDLE_MODEL: '1'
         run: bash scripts/build-iso.sh
 
-      - name: Validate image, boot catalog, and cortex payload
+      - name: Verify bundled cortex source tree
+        run: |
+          test -x iso/config/includes.chroot/usr/local/sbin/felixd
+          test -x iso/config/includes.chroot/usr/local/libexec/felix-llama-server
+          MODEL=iso/config/includes.chroot/opt/felix-models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+          test -s "$MODEL"
+          test "$(stat -c %s "$MODEL")" -gt 1000000000
+          test -s iso/config/includes.chroot/usr/share/doc/felix-platform/QWEN2.5-LICENSE
+          test -s iso/config/includes.chroot/usr/share/doc/felix-platform/MODEL_SHA256SUMS
+
+      - name: Validate image and boot catalog
         run: |
           ISO=out/felix-presence-os-amd64.iso
           test -s "$ISO"
